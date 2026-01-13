@@ -321,7 +321,7 @@ docker-compose logs langgraph-api | grep "Warmup complete"
 - Upgrade to paid tier
 - Switch to different provider in `.env`
 
-## 🛠️ Technologies
+## Technologies
 
 | Component           | Technology                         | Purpose                                 |
 | ------------------- | ---------------------------------- | --------------------------------------- |
@@ -336,7 +336,7 @@ docker-compose logs langgraph-api | grep "Warmup complete"
 | **Package Manager** | uv                                 | Fast Python dependency management       |
 
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Built with [LangGraph](https://github.com/langchain-ai/langgraph) and [LangChain](https://github.com/langchain-ai/langchain)
 - E5 multilingual embeddings from [Microsoft/unilm](https://github.com/microsoft/unilm/tree/master/e5)
