@@ -264,7 +264,7 @@ def main():
     print(f"   - Total chunks: {len(chunks)}")
     print(f"   - Vector store: {CHROMA_STORE_DIR}")
     print(f"\n🚀 Next step: Start the server")
-    print(f"   langgraph dev")
+    print(f"   uv run langgraph dev")
     print(f"\n   Then open: http://localhost:2024")
 
 

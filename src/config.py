@@ -38,7 +38,7 @@ else:
 
 # Embedding model configuration
 EMBEDDING_MODEL = "intfloat/multilingual-e5-base"
-EMBEDDING_BATCH_SIZE = 16
+EMBEDDING_BATCH_SIZE = 8
 
 # Retrieval configuration
 TOP_K_FUSION = 15  # After RRF fusion (send to rerank)

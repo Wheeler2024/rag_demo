@@ -9,7 +9,8 @@ ENV TRANSFORMERS_CACHE=/root/.cache/huggingface
 # Copy entrypoint script for auto-building vector store
 
 COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# Convert line endings from CRLF to LF (for Windows compatibility)
+RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 
 

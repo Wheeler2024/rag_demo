@@ -80,10 +80,9 @@ uv run python scripts/build_vectorstore.py
 ```bash
 # Build and start all containers
 docker-compose build
-docker-compose up -d
 
 # Monitor startup (wait ~60s for model warmup)
-docker-compose logs -f langgraph-api
+docker-compose up -d; docker-compose logs -f langgraph-api
 ```
 
 You'll see warmup progress:
@@ -125,7 +124,6 @@ cp .env.example .env
 
 # Install dependencies
 uv sync
-uv pip install -e .
 ```
 
 #### Step 2: Build Vector Store
@@ -202,25 +200,24 @@ rag_demo/
 # Choose your LLM provider
 MODEL_PROVIDER=groq  # Options: groq, openai, anthropic, google
 
-# Groq Configuration (recommended for speed)
+# Groq Configuration (recommended for free tier)
 GROQ_API_KEY=your_groq_api_key
-RESPONSE_MODEL=openai/gpt-oss-20b      # Main answer model
-RERANK_MODEL=meta-llama/llama-4-scout-17b-16e-instruct  # Reranker
+RESPONSE_MODEL=model_name  # Main answer model
+RERANK_MODEL=model_name    # Reranker
 
 # OpenAI Configuration
-# OPENAI_API_KEY=your_openai_key
-# RESPONSE_MODEL=gpt-4o
-# RERANK_MODEL=gpt-4o-mini
+...
 
 # Anthropic Configuration
-# ANTHROPIC_API_KEY=your_anthropic_key
-# RESPONSE_MODEL=claude-3-5-sonnet-20241022
-# RERANK_MODEL=claude-3-5-haiku-20241022
+...
 
 # Google AI Configuration
-# GOOGLE_API_KEY=your_google_key
-# RESPONSE_MODEL=gemini-2.0-flash-exp
-# RERANK_MODEL=gemini-2.0-flash-exp
+...
+
+# Optional for evaluation and tracing
+# LANGSMITH_API_KEY=your_langsmith_api_key
+# LANGSMITH_TRACING=true
+# LANGSMITH_PROJECT="rag_demo"
 ```
 
 ### Advanced Settings (src/config.py)
@@ -228,7 +225,7 @@ RERANK_MODEL=meta-llama/llama-4-scout-17b-16e-instruct  # Reranker
 ```python
 # Embedding configuration
 EMBEDDING_MODEL = "intfloat/multilingual-e5-base"
-EMBEDDING_BATCH_SIZE = 16  # Reduce if OOM errors
+EMBEDDING_BATCH_SIZE = 8  # Reduce if OOM errors
 
 # Retrieval configuration
 TOP_K_FUSION = 15   # Documents after RRF fusion
