@@ -1,0 +1,16 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "rag_demo": "./src/agent.py:agent"
+  },
+  "env": ".env",
+  "python_version": "3.12",
+  "dockerfile_lines": [
+    "# Set transformers cache directory to avoid permission issues inside container",
+    "ENV TRANSFORMERS_CACHE=/root/.cache/huggingface",
+    "",
+    "# Copy entrypoint script for auto-building vector store",
+    "COPY entrypoint.sh /entrypoint.sh",
+    "RUN chmod +x /entrypoint.sh"
+  ]
+}

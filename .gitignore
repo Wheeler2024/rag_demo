@@ -1,0 +1,22 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.langgraph_api
+logs/
+
+# Virtual environments
+.venv/
+
+# Environment files (contains secrets)
+.env
+
+# Data files and directories to ignore
+data/raw/*
+!data/raw/.gitkeep
+data/vector_store/*
+!data/vector_store/.gitkeep
+postgres-data
