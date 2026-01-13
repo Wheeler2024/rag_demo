@@ -23,9 +23,3 @@ dependencies = [
     "unstructured[pdf]>=0.18.27",
     "langgraph-api>=0.6.35",
 ]
-
-[tool.uv]
-# Use PyTorch CPU-only wheel for faster installation and smaller size
-extra-index-url = ["https://download.pytorch.org/whl/cpu"]
-# Allow selecting best match from all indexes to avoid conflicts
-index-strategy = "unsafe-best-match"

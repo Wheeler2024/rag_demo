@@ -142,7 +142,7 @@ def generate_answer(state: RAGState):
         # Format answer with citations for display
         answer_text = answer
         if citations:
-            answer_text += "\n\nSources:\n" + ",\n".join(
+            answer_text += "\n\nSources:\n" + ";\n".join(
                 f"{cite}" for cite in citations
             )
 

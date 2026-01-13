@@ -19,6 +19,8 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+    volumes:
+      - langgraph-data:/var/lib/postgresql/data
     command:
       - postgres
       - -c
@@ -39,16 +41,6 @@ services:
         condition: service_healthy
       langgraph-postgres:
         condition: service_healthy
-    entrypoint: ["/entrypoint.sh"]
-    command:
-      [
-        "uvicorn",
-        "langgraph_api.server:app",
-        "--host",
-        "0.0.0.0",
-        "--port",
-        "8000",
-      ]
     environment:
       REDIS_URI: redis://langgraph-redis:6379
       POSTGRES_URI: postgres://postgres:postgres@langgraph-postgres:5432/postgres?sslmode=disable

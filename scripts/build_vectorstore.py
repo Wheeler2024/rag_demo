@@ -236,7 +236,7 @@ def main():
         # Extract filename with extension
         file_name = Path(chunk.metadata.get("source", "unknown")).name
         page = chunk.metadata.get("page", 0) + 1  # Page numbers start at 1
-        chunk.metadata["chunk_id"] = f"{file_name}, page {page}, chunk {i}"
+        chunk.metadata["chunk_id"] = f"{file_name}-page {page}-chunk {i}"
 
     print(f"📦 Total chunks created: {len(chunks)}")
 
@@ -263,9 +263,6 @@ def main():
     print(f"   - Total pages: {len(docs)}")
     print(f"   - Total chunks: {len(chunks)}")
     print(f"   - Vector store: {CHROMA_STORE_DIR}")
-    print(f"\n🚀 Next step: Start the server")
-    print(f"   uv run langgraph dev")
-    print(f"\n   Then open: http://localhost:2024")
 
 
 if __name__ == "__main__":
