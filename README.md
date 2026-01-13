@@ -1,202 +1,347 @@
-# RAG Demo - PDF Question Answering System
+# RAG Demo - Advanced PDF Question Answering System
 
-A Retrieval-Augmented Generation (RAG) system built with LangGraph for answering questions based on PDF documents using advanced retrieval techniques.
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![LangGraph](https://img.shields.io/badge/LangGraph-1.0.5-green.svg)](https://github.com/langchain-ai/langgraph)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Features
+A production-ready Retrieval-Augmented Generation (RAG) system built with LangGraph, featuring hybrid retrieval, intelligent caching, and multi-provider LLM support.
 
-- 🔍 **Hybrid Retrieval**: Combines vector embeddings (E5) and BM25 for better document retrieval
-- 🔄 **Query Rewriting**: Automatically generates multiple search queries for improved recall
-- 📊 **Reciprocal Rank Fusion (RRF)**: Merges results from multiple retrievers
-- 🎯 **LLM Reranking**: Uses LLM to select the most relevant chunks
-- 📝 **Citation Support**: Automatically generates inline citations with source tracking
-- 💾 **Session Logging**: Saves Q&A sessions to JSON for analysis
+## Key Features
+
+- **Hybrid Retrieval**: Combines semantic search (E5 embeddings) with keyword matching (BM25)
+- **Query Rewriting**: Generates 3 query variants for improved document recall
+- **Reciprocal Rank Fusion**: Intelligently merges results from multiple retrievers
+- **LLM-based Reranking**: Selects the most relevant chunks using language models
+- **Intelligent Caching**: PostgreSQL-backed cache prevents redundant computations
+- **Citation Generation**: Automatically tracks and cites sources in answers
+- **Model Warmup**: Pre-loads all models at startup for sub-second response times
+- **Multi-Provider Support**: Works with Groq, OpenAI, Anthropic, or Google AI
 
 ## Architecture
 
-```
-User Question
-    ↓
-Query Rewriting (3 variants)
-    ↓
-Parallel Retrieval (Vector + BM25) × 4 queries
-    ↓
-RRF Fusion (top 20)
-    ↓
-LLM Reranking (top 5)
-    ↓
-Answer Generation with Citations
-    ↓
-Save to logs/qa_log_*.json
-```
+<div align="center">
+  <img src="rag_workflow.png" width="300px">
+</div>
 
 ## Prerequisites
 
-- Python 3.12+
-- CUDA-capable GPU (recommended for embeddings)
-- [uv](https://docs.astral.sh/uv/) package manager
-- Groq API key (free tier available)
+### Required
+- **Python 3.12+**
+- **[uv](https://docs.astral.sh/uv/)** - Modern Python package manager
+- **LLM API Key** - Choose one:
+  - [Groq](https://console.groq.com/keys) (recommended - free tier available)
+  - [OpenAI](https://platform.openai.com/api-keys)
+  - [Anthropic](https://console.anthropic.com/)
+  - [Google AI](https://aistudio.google.com/apikey)
+
+### Optional (for Docker deployment)
+- **Docker** & **Docker Compose** - For containerized deployment
+- Docker provides PostgreSQL (memory), Redis (for LangGraph), and LangGraph API
 
 ## Quick Start
 
-### 1. Clone the repository
+### Option 1: Docker Deployment (Recommended)
+
+Perfect for production use with persistent memory and caching.
+
+#### Step 1: Setup Environment
 
 ```bash
-git clone https://github.com/yourusername/rag_demo.git
+# Clone and navigate
+git clone https://github.com/Wheeler2024/rag_demo.git
 cd rag_demo
-```
 
-### 2. Set up environment
-
-```bash
-# Copy .env template and fill in your API keys
+# Configure API keys
 cp .env.example .env
-
-# Edit .env and configure:
-# - MODEL_PROVIDER (groq/openai/anthropic/google)
-# - API keys for your chosen provider
+# Edit .env and set:
+#   MODEL_PROVIDER=groq
+#   GROQ_API_KEY=your_actual_key_here
+#   RESPONSE_MODEL=model_name
+#   RERANK_MODEL=model_name
 ```
 
-### 3. Add PDF documents
+#### Step 2: Add Documents & Build Vector Store
 
 ```bash
-# Place your PDF files in the data/raw/ directory
+# Add your PDF files
 cp /path/to/your/pdfs/*.pdf data/raw/
-```
 
-### 4. Build vector store (REQUIRED before Docker)
-
-```bash
-# Install dependencies
+# Install dependencies and build vector store
 uv sync
-
-# Build the vector store locally
 uv run python scripts/build_vectorstore.py
 ```
 
-**⏱️ This step may take 2-5 minutes depending on PDF size.**
+**Building takes 2-5 minutes** depending on PDF size. This creates:
+- `data/vector_store/chroma/` - Semantic embeddings
+- `data/vector_store/bm25_retriever.pkl` - Keyword index
 
-### 5. Start Docker services
+#### Step 3: Launch Services
 
 ```bash
-# Build and start all services
+# Build and start all containers
 docker-compose build
 docker-compose up -d
 
-# Check service health
-docker-compose ps
+# Monitor startup (wait ~60s for model warmup)
+docker-compose logs -f langgraph-api
 ```
 
-### 6. Access the application
+You'll see warmup progress:
+```
+⏳ Warming up models and vector store (this may take ~60 seconds)...
+ ✓ E5 embedding model loaded
+ ✓ Vector store loaded
+ ✓ BM25 retriever loaded
+ ✓ LLM clients initialized
+✅ Warmup complete! Ready to serve requests.
 
-- **Agent Chat UI**: Connect at `https://agentchat.vercel.app/`
-  - Deployment URL: `http://localhost:2024`
-  - Graph ID: `rag_demo`
-  
-- **API Docs**: http://localhost:2024/docs
-- **Health Check**: http://localhost:2024/ok
+Application startup complete.
+Uvicorn running on http://0.0.0.0:8000
+```
 
+#### Step 4: Access Application
+
+**Option A: Agent Chat UI (Recommended)**
+1. Visit [https://agentchat.vercel.app/](https://agentchat.vercel.app/)
+2. Enter settings:
+   - **Deployment URL**: `http://localhost:2024`
+   - **Graph ID**: `rag_demo`
+3. Start chatting!
+
+---
+
+### Option 2: Local Development (No Docker)
+
+Faster iteration for development and testing.
+
+#### Step 1: Setup Environment
+
+```bash
+# Clone and configure
+git clone https://github.com/Wheeler2024/rag_demo.git
+cd rag_demo
+cp .env.example .env
+# Edit .env with your API key
+
+# Install dependencies
+uv sync
+uv pip install -e .
+```
+
+#### Step 2: Build Vector Store
+
+```bash
+# Add PDFs to data/raw/
+cp /path/to/pdfs/*.pdf data/raw/
+
+# Build indices
+uv run python scripts/build_vectorstore.py
+```
+
+#### Step 3: Start Development Server
+
+```bash
+# Run LangGraph dev server
+uv run langgraph dev
+
+# Server starts at http://localhost:2024
+```
+
+---
 
 ## Project Structure
 
 ```
 rag_demo/
 ├── src/
-│   ├── test.py           # Main RAG graph implementation
-│   ├── config.py         # Configuration (models, paths)
-│   ├── embedding.py      # Vector store & BM25 setup
-│   └── nodes/            # Custom graph nodes
+│   ├── agent.py              # Main LangGraph workflow definition
+│   ├── state.py              # RAGState with custom reducers
+│   ├── config.py             # Configuration (models, paths, settings)
+│   ├── nodes/
+│   │   ├── cache.py          # Cache check node (JSONL logs)
+│   │   ├── rewriter.py       # Query rewriting node
+│   │   ├── retrievers.py     # Vector & BM25 retrieval nodes
+│   │   ├── fusion.py         # RRF fusion node
+│   │   ├── reranker.py       # LLM-based reranking node
+│   │   └── generator.py      # Answer generation node
+│   └── utils/
+│       ├── models.py         # Cached LLM client factory
+│       └── vectorstore.py    # Cached embedding & retriever loaders
+│
 ├── data/
-│   ├── raw/              # Your PDF documents
-│   └── vector_store/     # Generated embeddings
-├── logs/                 # Q&A session logs
+│   ├── raw/                  # Place your PDF files here
+│   └── vector_store/         # Generated embeddings & BM25 index
+│
 ├── scripts/
-│   └── check_cuda.py     # CUDA verification
-├── .env.example          # Environment template
-├── langgraph.json        # LangGraph configuration
-├── pyproject.toml        # Python dependencies
-└── README.md             # This file
+│   ├── build_vectorstore.py  # Vector store builder
+│   └── cleanup.py            # Delete vector store & rebuild
+│
+├── logs/                     # Q&A session logs (auto-created)
+├── postgres-data/            # PostgreSQL data (Docker only)
+│
+├── docker-compose.yml        # Multi-container orchestration
+├── Dockerfile                # LangGraph API container
+├── entrypoint.sh             # Container startup script
+├── langgraph.json            # LangGraph configuration
+├── pyproject.toml            # Python dependencies (uv)
+├── .env.example              # Environment template
+└── README.md                 # This file
 ```
 
 ## Configuration
 
-Edit `src/config.py` to customize:
+### Environment Variables (.env)
 
-- **Models**:
-  - `RESPONSE_MODEL`: LLM for answers (default: GPT-OSS-120B via Groq)
-  - `RERANK_MODEL`: LLM for reranking (default: Llama-3.3-70B)
-  - `EMBEDDING_MODEL`: Embedding model (default: E5-multilingual)
-  
-- **Retrieval**:
-  - `TOP_K_FINAL`: Number of chunks after reranking (default: 5)
-  - `EMBEDDING_BATCH_SIZE`: Batch size for embeddings (default: 16)
+```bash
+# IMPORTANT:
+# - Only one LLM provider should be active at a time
+# - When switching providers, update MODEL_PROVIDER accordingly
+# - Comment out API keys and model settings for providers you are NOT using
+# - Uncomment and configure ONLY the selected provider below
 
-## How to Use
+# Choose your LLM provider
+MODEL_PROVIDER=groq  # Options: groq, openai, anthropic, google
 
-### Example Questions
+# Groq Configuration (recommended for speed)
+GROQ_API_KEY=your_groq_api_key
+RESPONSE_MODEL=openai/gpt-oss-20b      # Main answer model
+RERANK_MODEL=meta-llama/llama-4-scout-17b-16e-instruct  # Reranker
+
+# OpenAI Configuration
+# OPENAI_API_KEY=your_openai_key
+# RESPONSE_MODEL=gpt-4o
+# RERANK_MODEL=gpt-4o-mini
+
+# Anthropic Configuration
+# ANTHROPIC_API_KEY=your_anthropic_key
+# RESPONSE_MODEL=claude-3-5-sonnet-20241022
+# RERANK_MODEL=claude-3-5-haiku-20241022
+
+# Google AI Configuration
+# GOOGLE_API_KEY=your_google_key
+# RESPONSE_MODEL=gemini-2.0-flash-exp
+# RERANK_MODEL=gemini-2.0-flash-exp
+```
+
+### Advanced Settings (src/config.py)
+
+```python
+# Embedding configuration
+EMBEDDING_MODEL = "intfloat/multilingual-e5-base"
+EMBEDDING_BATCH_SIZE = 16  # Reduce if OOM errors
+
+# Retrieval configuration
+TOP_K_FUSION = 15   # Documents after RRF fusion
+TOP_K_FINAL = 5     # Documents after reranking (sent to LLM)
+```
+
+### Answer Format
+
+Answers include **inline citations** with source tracking:
 
 ```
-Q: Who are the authors of the Attention is All You Need paper?
-Q: How many attention heads does the big Transformer model use?
-Q: What is the BLEU score achieved on WMT 2014 English-to-German?
+The Transformer architecture uses multi-head attention with 8 heads. The model achieved a BLEU score of 28.4 on WMT 2014 English-to-German translation.
+
+Sources:
+attention_paper.pdf, page 5, chunk 1
+attention_paper.pdf, page 7, chunk 2
 ```
 
-### Session Logs
+## Common Operations
 
-Every Q&A interaction is saved to `logs/qa_log_YYYYMMDD.jsonl`:
+### Adding New Documents
 
-```json
-{
-  "timestamp": "2026-01-11T14:30:52",
-  "question": "Original user question",
-  "rewritten_queries": ["Query 1", "Query 2", "Query 3"],
-  "answer": "Generated answer with citations",
-  "citations": ["Source identifiers"],
-  "reranked_context": [
-    {
-      "chunk_id": "...",
-      "content": "..."
-    }
-  ]
-}
+```bash
+# 1. Add PDFs to raw directory
+cp new_document.pdf data/raw/
+
+# 2. Rebuild vector store
+uv run python scripts/build_vectorstore.py
+
+# 3. Restart Docker (if using Docker)
+docker-compose restart langgraph-api
+```
+
+### Viewing Logs
+
+```bash
+# Docker logs
+docker-compose logs -f langgraph-api
+
+# Check all services
+docker-compose ps
+```
+
+### Cleaning Up
+
+```bash
+# Stop and remove containers
+docker-compose down
+
+# Remove vector store and rebuild
+uv run python scripts/cleanup.py
+uv run python scripts/build_vectorstore.py
 ```
 
 ## Troubleshooting
 
-### Out of memory errors
-- Reduce `EMBEDDING_BATCH_SIZE` in `config.py`
-- Use CPU-only embeddings (slower but works)
+### "Vector store not found" Error
 
-### API rate limits
-- Groq free tier has rate limits
-- Consider upgrading or using different models
+**Cause**: Vector store must be built locally before Docker startup.
 
-## Development
+**Solution**:
+```bash
+uv run python scripts/build_vectorstore.py
+docker-compose up -d
+```
 
-### Adding New Documents
+### Out of Memory Errors
 
-1. Add PDFs to `data/raw/`
-2. Rebuild vector store: `uv run python src/embedding.py`
-3. Restart LangGraph server
+**Symptom**: Process killed during embedding generation.
 
-## Technologies Used
+**Solutions**:
+1. Reduce batch size in `src/config.py`:
+   ```python
+   EMBEDDING_BATCH_SIZE = 8  # or lower
+   ```
+2. Use smaller PDFs or split large documents
 
-- **LangGraph**: Orchestration and graph workflow
-- **LangChain**: RAG components and integrations
-- **Groq**: Fast LLM inference
-- **ChromaDB**: Vector database
-- **Sentence Transformers**: E5 multilingual embeddings
-- **BM25**: Keyword-based retrieval
+### Slow Startup in Docker
 
-## License
+**Expected**: First startup takes ~60 seconds for model warmup.
 
-MIT
+**Verification**: Check logs show warmup completion:
+```bash
+docker-compose logs langgraph-api | grep "Warmup complete"
+```
 
-## Contributing
+### API Rate Limits (Groq)
 
-Pull requests are welcome! Please open an issue first to discuss proposed changes.
+**Groq free tier**: 30 requests/minute
 
-## Acknowledgments
+**Solutions**:
+- Wait between requests
+- Upgrade to paid tier
+- Switch to different provider in `.env`
 
-- Attention Is All You Need paper (example dataset)
-- LangChain and LangGraph teams
-- Groq for fast inference
+## 🛠️ Technologies
+
+| Component           | Technology                         | Purpose                                 |
+| ------------------- | ---------------------------------- | --------------------------------------- |
+| **Orchestration**   | LangGraph 1.0.5                    | Graph-based workflow engine             |
+| **LLM Inference**   | Groq / OpenAI / Anthropic / Google | Answer generation & reranking           |
+| **Embeddings**      | Sentence Transformers (E5)         | Semantic vector search                  |
+| **Vector Store**    | ChromaDB                           | Persistent vector storage               |
+| **Keyword Search**  | Rank-BM25                          | Traditional IR for hybrid retrieval     |
+| **Memory**          | PostgreSQL + pgvector              | Conversation history & cache            |
+| **Caching**         | JSONL Log Files                    | Question/answer cache for fast response |
+| **Container**       | Docker + Compose                   | Isolated deployment                     |
+| **Package Manager** | uv                                 | Fast Python dependency management       |
+
+
+## 🙏 Acknowledgments
+
+- Built with [LangGraph](https://github.com/langchain-ai/langgraph) and [LangChain](https://github.com/langchain-ai/langchain)
+- E5 multilingual embeddings from [Microsoft/unilm](https://github.com/microsoft/unilm/tree/master/e5)
+- Inspired by advanced RAG techniques from the research community
+- [Agent-chat-ui](https://github.com/langchain-ai/agent-chat-ui) for frontend
