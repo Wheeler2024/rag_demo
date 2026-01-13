@@ -12,15 +12,15 @@ A production-ready Retrieval-Augmented Generation (RAG) system built with LangGr
 - **Query Rewriting**: Generates 3 query variants for improved document recall
 - **Reciprocal Rank Fusion**: Intelligently merges results from multiple retrievers
 - **LLM-based Reranking**: Selects the most relevant chunks using language models
-- **Intelligent Caching**: PostgreSQL-backed cache prevents redundant computations
-- **Citation Generation**: Automatically tracks and cites sources in answers
-- **Model Warmup**: Pre-loads all models at startup for sub-second response times
+- **Intelligent Caching**: JSONL-backed cache prevents redundant computations (It can be expanded into a database format in the future.)
+- **Citation Generation**: Automatically tracks and cites sources in answers 
+- **Model Warmup**: Pre-loads all models at startup for sub-second response times (In the future, both the embedding model and the vector database can be developed as separate services and interconnected via APIs.)
 - **Multi-Provider Support**: Works with Groq, OpenAI, Anthropic, or Google AI
 
 ## Architecture
 
 <div align="center">
-  <img src="rag_workflow.png" width="300px">
+  <img src="rag_workflow.png" width="320px">
 </div>
 
 ## Prerequisites
@@ -124,6 +124,9 @@ cp .env.example .env
 
 # Install dependencies
 uv sync
+
+# The project must be installed as a package
+uv pip install -e .
 ```
 
 #### Step 2: Build Vector Store
@@ -175,7 +178,6 @@ rag_demo/
 │   └── cleanup.py            # Delete vector store & rebuild
 │
 ├── logs/                     # Q&A session logs (auto-created)
-├── postgres-data/            # PostgreSQL data (Docker only)
 │
 ├── docker-compose.yml        # Multi-container orchestration
 ├── Dockerfile                # LangGraph API container

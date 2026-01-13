@@ -79,7 +79,7 @@ Fact & Listing Rules:
 - Do NOT repeat the same citation for every item if they share the same source.
 
 Citation Rules:
-- Copy the EXACT identifier from [Source: ...] shown in the context.
+- Copy the EXACT source identifier from [Source: source identifier] shown in the context.
 - Each source identifier may appear at most once in the citations list.
 - Do NOT invent or paraphrase source identifiers.
 - Do NOT use outside knowledge or assumptions.
@@ -142,7 +142,9 @@ def generate_answer(state: RAGState):
         # Format answer with citations for display
         answer_text = answer
         if citations:
-            answer_text += "\n\nSources:\n" + "\n".join(f"{cite}" for cite in citations)
+            answer_text += "\n\nSources:\n" + ",\n".join(
+                f"{cite}" for cite in citations
+            )
 
         # Create AI message and append to messages
         ai_message = AIMessage(content=answer_text)

@@ -4,13 +4,17 @@ from config import TOP_K_FINAL
 from state import RAGState
 from langgraph.types import Send
 
+# Load the vector store and create the retriever
+vector_store = load_vector_store()
+retriever = vector_store.as_retriever(search_kwargs={"k": TOP_K_FINAL})
+
+bm25_retriever = load_bm25_retriever()
+bm25_retriever.k = TOP_K_FINAL
+
 
 # Node function: retrieve documents using vector embeddings
 def retrieve_vector(state: RAGState):
     """Search and return information about PDFs for a single query using vector embeddings."""
-    vectorstore = load_vector_store()
-    retriever = vectorstore.as_retriever(search_kwargs={"k": TOP_K_FINAL})
-
     query = state["question"]
     docs = retriever.invoke(query)
     return {"docs": docs}
@@ -19,9 +23,6 @@ def retrieve_vector(state: RAGState):
 # Node function: retrieve documents using BM25
 def retrieve_bm25(state: RAGState):
     """Search and return information about PDFs for a single query using BM25."""
-    bm25_retriever = load_bm25_retriever()
-    bm25_retriever.k = TOP_K_FINAL
-
     query = state["question"]
     docs = bm25_retriever.invoke(query)
     return {"docs": docs}

@@ -15,25 +15,25 @@ from langgraph.graph import StateGraph, START, END
 
 # Warmup: preload models and vector store to avoid cold start
 # This happens once at startup (50s) instead of on first user query
-print("⏳ Warming up models and vector store (this may take ~60 seconds)...")
-from utils import (
-    build_e5_encoder,
-    load_vector_store,
-    load_bm25_retriever,
-    get_response_model,
-    get_rerank_model,
-)
+# print("⏳ Warming up models and vector store (this may take 120~180 seconds)...")
+# from utils import (
+#     build_e5_encoder,
+#     load_vector_store,
+#     load_bm25_retriever,
+#     get_response_model,
+#     get_rerank_model,
+# )
 
-build_e5_encoder()
-print(" ✓ E5 embedding model loaded")
-load_vector_store()
-print(" ✓ Vector store loaded")
-load_bm25_retriever()
-print(" ✓ BM25 retriever loaded")
-get_response_model()
-get_rerank_model()
-print(" ✓ LLM clients initialized")
-print("✅ Warmup complete! Ready to serve requests.\n")
+# build_e5_encoder()
+# print(" ✓ E5 embedding model loaded")
+# load_vector_store()
+# print(" ✓ Vector store loaded")
+# load_bm25_retriever()
+# print(" ✓ BM25 retriever loaded")
+# get_response_model()
+# get_rerank_model()
+# print(" ✓ LLM clients initialized")
+# print("✅ Warmup complete! Ready to serve requests.\n")
 
 # Build the agent workflow
 workflow = StateGraph(RAGState)
