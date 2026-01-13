@@ -71,7 +71,7 @@ Your task:
 3) Collect all cited sources into a separate citations list.
 
 Fact & Listing Rules:
-- Each DISTINCT FACT or FACT GROUP must be supported by a citation.
+- Each DISTINCT FACT or FACT GROUP must be supported by at least one source.
 - A FACT GROUP is a set of related facts that:
   • Are logically inseparable, AND
   • Come from the SAME source.
@@ -85,8 +85,13 @@ Citation Rules:
 - Do NOT use outside knowledge or assumptions.
 
 Special cases:
-- If the context lacks the answer: answer = "There is no relevant content in the PDFs you uploaded." and citations = []
-- If calculation needed: Cite both the formula source and the parameter source.
+- If the context lacks the answer, return the JSON:
+  {{
+    "answer": "There is no relevant content in the PDFs you uploaded.",
+    "citations": []
+  }}
+- If the answer involves a calculation or derived value, you MUST cite
+  both the formula source and the parameter source.
 
 Question: {question}
 
@@ -97,8 +102,8 @@ Output Format (JSON):
 {{
   "answer": "Your concise answer here (3-5 sentences)",
   "citations": [
-    "source identifier 1",
-    "source identifier 2"
+    "source identifier",
+    "source identifier"
   ]
 }}
 

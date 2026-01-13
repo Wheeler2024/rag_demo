@@ -44,7 +44,7 @@ def check_cache(state: RAGState):
                             # Format answer with citations
                             answer_text = cached_answer
                             if cached_citations:
-                                answer_text += "\n\nSources:\n" + "\n".join(
+                                answer_text += "\n\nSources:\n" + ";\n".join(
                                     f"{cite}" for cite in cached_citations
                                 )
 
@@ -67,10 +67,11 @@ def check_cache(state: RAGState):
         except Exception as e:
             print(f"Warning: Could not read log file {log_file}: {e}")
             continue
-    
+
     # Cache miss, continue to normal workflow
     print(f"✗ Cache miss for question: {question[:50]}...")
     return {"question": question, "cache_hit": False}
+
 
 # Router function: skip workflow if cache hit
 def route_from_cache(state: RAGState):

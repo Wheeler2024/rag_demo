@@ -148,6 +148,8 @@ uv run langgraph dev
 # Server starts at http://localhost:2024
 ```
 
+>**Note**: The development server is a built-in feature of Langgraph. You can use the chat mode in the top-left corner of the screen to test conversations.
+
 ---
 
 ## Project Structure
