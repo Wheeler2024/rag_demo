@@ -4,7 +4,7 @@
 [![LangGraph](https://img.shields.io/badge/LangGraph-1.0.5-green.svg)](https://github.com/langchain-ai/langgraph)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A production-ready Retrieval-Augmented Generation (RAG) system built with LangGraph, featuring hybrid retrieval, intelligent caching, and multi-provider LLM support.
+A Retrieval-Augmented Generation (RAG) demo system built with LangGraph, featuring hybrid retrieval, LLM-based rerank, and intelligent caching.
 
 ## Key Features
 
@@ -16,6 +16,18 @@ A production-ready Retrieval-Augmented Generation (RAG) system built with LangGr
 - **Citation Generation**: Automatically tracks and cites sources in answers 
 - **Model Warmup**: Pre-loads all models at startup for sub-second response times (In the future, both the embedding model and the vector database can be developed as separate services and interconnected via APIs.)
 - **Multi-Provider Support**: Works with Groq, OpenAI, Anthropic, or Google AI
+
+## Current Scope & Limitations
+
+This project is currently provided as a **demo / reference implementation** of an advanced RAG system.
+
+At this stage:
+- Only **PDF documents** are supported as input sources
+- Document ingestion is based on a PDF loader pipeline
+- Other formats (e.g. DOCX, Markdown, HTML, web pages) are **not yet supported**
+
+The architecture is designed to be **easily extensible**, and support for additional document formats
+can be added in the future by extending the document loader and preprocessing pipeline.
 
 ## Architecture
 
@@ -85,17 +97,12 @@ docker-compose build
 docker-compose up -d; docker-compose logs -f langgraph-api
 ```
 
-You'll see warmup progress:
+>**Note:** When starting the service for the first time, the application will perform a warm-up process. This warm-up phase typically takes around **60–70 seconds**.
+Once you see output similar to the following. You can now proceed to **Step 4**.
 ```
-⏳ Warming up models and vector store (this may take ~60 seconds)...
- ✓ E5 embedding model loaded
- ✓ Vector store loaded
- ✓ BM25 retriever loaded
- ✓ LLM clients initialized
-✅ Warmup complete! Ready to serve requests.
-
-Application startup complete.
-Uvicorn running on http://0.0.0.0:8000
+...[info     ] Application started up in [??]s...
+...[info     ] Application startup complete...
+...[info     ] Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
 ```
 
 #### Step 4: Access Application
@@ -238,15 +245,20 @@ TOP_K_FINAL = 5     # Documents after reranking (sent to LLM)
 
 ### Answer Format
 
-Answers include **inline citations** with source tracking:
+Answers include **source tracking** with references to the originating documents.
 
 ```
 The Transformer architecture uses multi-head attention with 8 heads. The model achieved a BLEU score of 28.4 on WMT 2014 English-to-German translation.
 
 Sources:
-attention_paper.pdf, page 5, chunk 1
-attention_paper.pdf, page 7, chunk 2
+attention_paper.pdf-page 5-chunk 1
+attention_paper.pdf-page 7-chunk 2
 ```
+
+> **Planned**:
+> - Inline citations (sentence-level)
+> - Stable citation indices (`[1]`, `[2]`)
+> - Improved citation precision for long answers
 
 ## Common Operations
 
@@ -318,12 +330,13 @@ docker-compose logs langgraph-api | grep "Warmup complete"
 
 ### API Rate Limits (Groq)
 
-**Groq free tier**: 30 requests/minute
+Groq **free tier rate limits vary by model** and are defined across multiple dimensions, like **RPM** – Requests per minute or **TPD** – Tokens per day etc.
 
 **Solutions**:
-- Wait between requests
-- Upgrade to paid tier
-- Switch to different provider in `.env`
+- Wait and retry after the rate window resets  
+- Switch to a different Groq model with higher limits  
+- Upgrade to a paid tier (if available)  
+- Switch to another provider in `.env` (OpenAI, Anthropic, or Google)
 
 ## Technologies
 
